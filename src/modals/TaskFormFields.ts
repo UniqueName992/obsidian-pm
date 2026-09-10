@@ -79,7 +79,7 @@ export function renderTaskFormFields(container: HTMLElement, ctx: TaskFormFields
             task.start = ''
             task.progress = 0
           }
-          if (id !== 'subtask') ctx.setParentId(null)
+          if (id === 'task') ctx.setParentId(null)
           rerender()
         }
       })
@@ -88,9 +88,10 @@ export function renderTaskFormFields(container: HTMLElement, ctx: TaskFormFields
     'shapes'
   )
 
-  // The parent picker shares the type row and shows only for subtasks; an empty cell holds
-  // the column otherwise, so switching type never reflows the grid.
-  if (task.type === 'subtask') {
+  // The parent picker shares the type row and shows for anything that can nest —
+  // subtasks and milestones alike; an empty cell holds the column otherwise, so
+  // switching type never reflows the grid.
+  if (task.type === 'subtask' || task.type === 'milestone') {
     renderPropRow(
       grid,
       'Parent task',

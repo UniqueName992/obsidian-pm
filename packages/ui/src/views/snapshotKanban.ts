@@ -30,7 +30,9 @@ function cardData(model: ViewModel, task: Task): KanbanCardData {
     people: task.assignees.map((raw) => ({ name: displayName(raw) })),
     priorityColor:
       priorityConfig && task.priority !== 'medium' && task.priority !== 'low' ? priorityConfig.color : undefined,
-    parentTitle: model.settings.kanbanShowSubtasks && task.type === 'subtask' ? parentTitle(model, task.id) : undefined,
+    // Nesting isn't limited to type 'subtask' — a milestone can sit under a parent
+    // too — so any nested task earns the breadcrumb, not just that one type.
+    parentTitle: model.settings.kanbanShowSubtasks ? parentTitle(model, task.id) : undefined,
     renderSource: owner
       ? (el) => renderProjectChip(el, { title: owner.title, color: owner.color, onClick: noop })
       : undefined,

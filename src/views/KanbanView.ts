@@ -107,8 +107,10 @@ export class KanbanView implements SubView {
       descriptionPreview = text ? text.slice(0, 240) : undefined
     }
 
+    // Nesting isn't limited to type 'subtask' — a milestone can sit under a parent
+    // too — so any nested task earns the breadcrumb, not just that one type.
     let parentTitle: string | undefined
-    if (this.config.kanbanShowSubtasks && task.type === 'subtask') {
+    if (this.config.kanbanShowSubtasks) {
       const parent = this.findParentTask(task.id)
       if (parent) parentTitle = parent.title
     }

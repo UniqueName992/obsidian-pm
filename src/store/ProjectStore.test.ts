@@ -1537,6 +1537,31 @@ describe('reference round-trip', () => {
     expect(project.tasks[0].subtasks.map((t) => t.id)).toEqual(['t2'])
     expect(project.tasks[0].subtasks[0].dependencies).toEqual(['t1'])
   })
+
+  it('drops a milestone from the top level once hand-edited frontmatter also nests it under a parent', async () => {
+    const { app, vault } = makeFakeApp({ liveMetadataCache: true })
+    const typed = app as unknown as App
+    // A milestone hand-added to a parent's subtaskIds while it's still listed in the
+    // project's own taskIds — the inconsistency a direct frontmatter edit can leave
+    // behind — used to render the milestone twice: once at top level, once nested.
+    await vault.create(
+      'Projects/Roadmap.md',
+      '---\npm-project: true\nid: "p1"\ntitle: "Roadmap"\ntaskIds: ["t1", "t2"]\n---\n'
+    )
+    await vault.create(
+      'Projects/Roadmap_tasks/parent.md',
+      '---\npm-task: true\nprojectId: "p1"\nid: "t1"\ntitle: "Parent"\nsubtaskIds: ["t2"]\n---\n'
+    )
+    await vault.create(
+      'Projects/Roadmap_tasks/launch.md',
+      '---\npm-task: true\nprojectId: "p1"\nid: "t2"\ntitle: "Launch"\ntype: "milestone"\n---\n'
+    )
+
+    const project = expectDefined(await new ProjectStore(typed, () => SETTINGS).loadProjectByPath('Projects/Roadmap.md'))
+
+    expect(project.tasks.map((t) => t.id)).toEqual(['t1'])
+    expect(project.tasks[0].subtasks.map((t) => t.id)).toEqual(['t2'])
+  })
 })
 
 describe('ProjectStore.reassignIds', () => {

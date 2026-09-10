@@ -525,6 +525,16 @@ export class ProjectStore implements TaskSource {
     const pushed = new Set<string>()
     for (const id of refListToIds(this.app, topLevelRefs, projectPath, idByPath)) {
       if (pushed.has(id)) continue
+      // A task nested under a parent's subtaskIds that the project's own taskIds still
+      // lists at top level (hand-edited frontmatter, typically) would otherwise render
+      // twice: once here, once under its parent. The nested copy wins.
+      if (childIds.has(id)) {
+        const task = taskMap.get(id)
+        console.warn(
+          `[PM] Self-healed duplicate: dropped top-level reference to "${task?.title ?? id}" (${id}), already nested under its parent`
+        )
+        continue
+      }
       const task = taskMap.get(id)
       if (task) {
         result.push(task)
