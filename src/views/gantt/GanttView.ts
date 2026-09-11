@@ -307,6 +307,7 @@ export class GanttView implements SubView {
       headerSvgEl: this.headerSvgEl,
       cfg: this.cfg,
       weekLabel: this.plugin.settings.ganttWeekLabel,
+      showRecurrenceOccurrences: this.plugin.settings.ganttShowRecurrenceOccurrences,
       plugin: this.plugin,
       scope: this.scope,
       statuses: this.scope.config.statuses,

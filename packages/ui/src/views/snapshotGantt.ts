@@ -71,7 +71,13 @@ function renderBody(container: HTMLElement, model: ViewModel, granularity: Gantt
   const canvasSvg = svgEl('svg', { width: cfg.totalWidth, height: svgHeight, class: 'pm-gantt-svg' })
   svgContainer.appendChild(canvasSvg)
 
-  const canvas: GanttCanvas = { svgEl: canvasSvg, headerSvgEl, cfg, weekLabel: model.settings.ganttWeekLabel }
+  const canvas: GanttCanvas = {
+    svgEl: canvasSvg,
+    headerSvgEl,
+    cfg,
+    weekLabel: model.settings.ganttWeekLabel,
+    showRecurrenceOccurrences: model.settings.ganttShowRecurrenceOccurrences
+  }
   renderTimelineHeader(canvas)
   renderGridLines(canvas, rows.length)
   renderTodayLine(canvas, svgHeight)

@@ -201,6 +201,8 @@ export interface PMSettings {
   defaultView: ViewMode
   ganttGranularity: GanttGranularity
   ganttWeekLabel: GanttWeekLabel
+  /** Draw a recurring task at every future date it repeats, not just its own start/due. */
+  ganttShowRecurrenceOccurrences: boolean
   statuses: StatusConfig[]
   priorities: PriorityConfig[]
   /** Icons for priorities that don't carry their own. */
@@ -272,6 +274,7 @@ export const DEFAULT_SETTINGS: PMSettings = {
   defaultView: 'table',
   ganttGranularity: 'week',
   ganttWeekLabel: 'weekNumber',
+  ganttShowRecurrenceOccurrences: false,
   statuses: DEFAULT_STATUSES,
   priorities: DEFAULT_PRIORITIES,
   priorityIcons: 'chevrons',

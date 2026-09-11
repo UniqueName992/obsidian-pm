@@ -168,6 +168,12 @@ export class PMSettingTab extends PluginSettingTab {
                 both: 'Both (w15: apr 7\u201313)'
               }
             }
+          },
+          {
+            name: 'Show repeat occurrences',
+            desc: 'Draw a recurring task on the timeline at every future date it repeats, not just its own dates.',
+            aliases: ['recurrence', 'repeat', 'recurring'],
+            control: { type: 'toggle', key: 'ganttShowRecurrenceOccurrences' }
           }
         ]
       },
