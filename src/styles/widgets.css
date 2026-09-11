@@ -148,6 +148,10 @@
 .pm-gantt-milestone:hover {
   filter: brightness(1.2);
 }
+.pm-gantt-milestone-occurrence {
+  opacity: 0.35;
+  cursor: default;
+}
 .pm-gantt-milestone-label {
   font-size: 10px;
   font-weight: 600;

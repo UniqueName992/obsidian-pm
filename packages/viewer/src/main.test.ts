@@ -21,7 +21,8 @@ function snapshot(): Snapshot {
       showSubtreeConnections: true,
       lineBorders: 'none',
       kanbanShowSubtasks: false,
-      ganttWeekLabel: 'weekNumber'
+      ganttWeekLabel: 'weekNumber',
+      ganttShowRecurrenceOccurrences: false
     },
     projects: [
       {

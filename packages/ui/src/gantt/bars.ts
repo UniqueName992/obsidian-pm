@@ -1,4 +1,12 @@
-import { type StatusConfig, type Task, displayName, getStatusConfig, parsePlainDate } from '@dotpm/core'
+import {
+  type StatusConfig,
+  type Task,
+  type Temporal,
+  displayName,
+  getStatusConfig,
+  parsePlainDate,
+  recurrenceOccurrences
+} from '@dotpm/core'
 import { svgEl } from '../dom'
 import type { GanttCanvas } from './canvas'
 import { BAR_BORDER_RADIUS, BAR_PADDING, HEADER_HEIGHT, ROW_HEIGHT, dateToX } from './TimelineConfig'
@@ -52,7 +60,8 @@ export function drawTaskBar(
   // A task due on E occupies day E, so the bar's right edge sits at the start of E+1.
   const effectiveStart = startDate ?? endDate
   if (!effectiveStart) return null
-  const effectiveEnd = (endDate ?? effectiveStart).add({ days: 1 })
+  const dueAnchor = endDate ?? effectiveStart
+  const effectiveEnd = dueAnchor.add({ days: 1 })
 
   const y = HEADER_HEIGHT + row * ROW_HEIGHT + BAR_PADDING
   const height = ROW_HEIGHT - BAR_PADDING * 2
@@ -96,6 +105,22 @@ export function drawTaskBar(
     const icon = svgEl('text', { x: x + width + 4, y: y + height / 2 + 5, class: 'pm-gantt-bar-icon' })
     icon.textContent = 'R'
     barGroup.appendChild(icon)
+
+    if (canvas.showRecurrenceOccurrences) {
+      const spanDays = effectiveEnd.since(effectiveStart, { largestUnit: 'days' }).days
+      drawRecurrenceOccurrenceBars(
+        barGroup,
+        canvas,
+        task,
+        task.recurrence,
+        effectiveStart,
+        dueAnchor,
+        spanDays,
+        y,
+        height,
+        color
+      )
+    }
   }
 
   if (width > 55) {
@@ -112,6 +137,44 @@ export function drawTaskBar(
   rect.appendChild(tooltip)
 
   return { barGroup, rect, x, y, width, height }
+}
+
+/** Ghost copies of a recurring task's bar at each future date it repeats, drawn on its own row. */
+function drawRecurrenceOccurrenceBars(
+  barGroup: SVGGElement,
+  canvas: GanttCanvas,
+  task: Task,
+  recurrence: NonNullable<Task['recurrence']>,
+  effectiveStart: Temporal.PlainDate,
+  dueAnchor: Temporal.PlainDate,
+  spanDays: number,
+  y: number,
+  height: number,
+  color: string
+): void {
+  const occurrences = recurrenceOccurrences(recurrence, dueAnchor, canvas.cfg.startDate, canvas.cfg.endDate)
+  for (const occDate of occurrences) {
+    const shiftDays = dueAnchor.until(occDate, { largestUnit: 'days' }).days
+    const occStart = effectiveStart.add({ days: shiftDays })
+    const occEnd = occStart.add({ days: spanDays })
+    const x = Math.max(0, dateToX(canvas.cfg, occStart))
+    const xEnd = Math.min(canvas.cfg.totalWidth, dateToX(canvas.cfg, occEnd))
+    const width = Math.max(8, xEnd - x)
+    const rect = svgEl('rect', {
+      x,
+      y,
+      width,
+      height,
+      rx: BAR_BORDER_RADIUS,
+      ry: BAR_BORDER_RADIUS,
+      fill: color,
+      class: 'pm-gantt-bar-occurrence'
+    })
+    const tooltip = svgEl('title', {})
+    tooltip.textContent = `${task.title} (repeats)\nDue: ${occDate.toString()}`
+    rect.appendChild(tooltip)
+    barGroup.appendChild(rect)
+  }
 }
 
 export function drawMilestoneDiamond(
@@ -137,6 +200,22 @@ export function drawMilestoneDiamond(
   const tooltip = svgEl('title', {})
   tooltip.textContent = `${task.title} (milestone)\nDate: ${task.due || task.start || '—'}`
   diamond.appendChild(tooltip)
+
+  if (canvas.showRecurrenceOccurrences && task.recurrence) {
+    for (const occDate of recurrenceOccurrences(task.recurrence, date, canvas.cfg.startDate, canvas.cfg.endDate)) {
+      const ocx = dateToX(canvas.cfg, occDate) + canvas.cfg.dayWidth / 2
+      const occDiamond = svgEl('polygon', {
+        points: `${ocx},${cy - size} ${ocx + size},${cy} ${ocx},${cy + size} ${ocx - size},${cy}`,
+        fill: color,
+        class: 'pm-gantt-milestone-occurrence'
+      })
+      const occTooltip = svgEl('title', {})
+      occTooltip.textContent = `${task.title} (repeats)\nDate: ${occDate.toString()}`
+      occDiamond.appendChild(occTooltip)
+      g.appendChild(occDiamond)
+    }
+  }
+
   return diamond
 }
 

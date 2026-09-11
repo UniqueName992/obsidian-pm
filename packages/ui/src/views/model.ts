@@ -31,6 +31,7 @@ export interface ViewSettings {
   kanbanShowSubtasks: boolean
   ganttWeekLabel: GanttWeekLabel
   ganttGranularity: GanttGranularity
+  ganttShowRecurrenceOccurrences: boolean
 }
 
 /**

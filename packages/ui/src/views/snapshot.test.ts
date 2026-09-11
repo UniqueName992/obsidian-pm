@@ -74,7 +74,8 @@ function model(overrides: Partial<ViewModel> = {}): ViewModel {
       lineBorders: 'none',
       kanbanShowSubtasks: false,
       ganttWeekLabel: 'weekNumber',
-      ganttGranularity: 'week'
+      ganttGranularity: 'week',
+      ganttShowRecurrenceOccurrences: false
     },
     filter: makeDefaultFilter(),
     sortKey: 'title',
@@ -142,5 +143,59 @@ describe('snapshot gantt', () => {
     expect(host.querySelector('.pm-gantt-header-svg text')).not.toBeNull()
     const buttons = Array.from(host.querySelectorAll('.pm-gantt-controls button')).map((b) => b.textContent)
     expect(buttons).toEqual(['Day', 'Week', 'Month', 'Quarter', 'Year'])
+  })
+
+  function singleTaskModel(task: ReturnType<typeof makeTask>, showRecurrenceOccurrences: boolean): ViewModel {
+    return model({
+      projects: [{ id: 'p1', title: 'Alpha', color: '#8b72be', icon: '🚀', config: CONFIG, tasks: [task] }],
+      settings: {
+        priorityIcons: 'chevrons',
+        showTagColors: true,
+        showSubtreeConnections: true,
+        lineBorders: 'none',
+        kanbanShowSubtasks: false,
+        ganttWeekLabel: 'weekNumber',
+        ganttGranularity: 'week',
+        ganttShowRecurrenceOccurrences: showRecurrenceOccurrences
+      }
+    })
+  }
+
+  it('draws a ghost bar for each future occurrence of a recurring task, only when enabled', () => {
+    const task = makeTask({
+      id: 'r',
+      title: 'Standup',
+      start: '2031-03-10',
+      due: '2031-03-10',
+      recurrence: { interval: 'weekly', every: 1 }
+    })
+
+    const off = document.body.createDiv()
+    renderSnapshotGantt(off, singleTaskModel(task, false))
+    expect(off.querySelectorAll('.pm-gantt-bar-occurrence').length).toBe(0)
+
+    const on = document.body.createDiv()
+    renderSnapshotGantt(on, singleTaskModel(task, true))
+    // Timeline runs to due + 14 days: two more Mondays fall in that window.
+    expect(on.querySelectorAll('.pm-gantt-bar-occurrence').length).toBe(2)
+  })
+
+  it('draws a ghost diamond for each future occurrence of a recurring milestone, only when enabled', () => {
+    const milestone = makeTask({
+      id: 'r',
+      title: 'Release',
+      type: 'milestone',
+      due: '2031-04-01',
+      recurrence: { interval: 'weekly', every: 2 }
+    })
+
+    const off = document.body.createDiv()
+    renderSnapshotGantt(off, singleTaskModel(milestone, false))
+    expect(off.querySelectorAll('.pm-gantt-milestone-occurrence').length).toBe(0)
+
+    const on = document.body.createDiv()
+    renderSnapshotGantt(on, singleTaskModel(milestone, true))
+    // Timeline runs to due + 14 days: exactly one more fortnightly occurrence falls in that window.
+    expect(on.querySelectorAll('.pm-gantt-milestone-occurrence').length).toBe(1)
   })
 })

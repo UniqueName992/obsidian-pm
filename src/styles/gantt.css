@@ -251,6 +251,10 @@
 .pm-gantt-bar-progress {
   pointer-events: none;
 }
+.pm-gantt-bar-occurrence {
+  opacity: 0.25;
+  cursor: default;
+}
 .pm-gantt-bar-label {
   font-size: 10px;
   fill: rgba(255, 255, 255, 0.85);

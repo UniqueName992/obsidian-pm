@@ -9,6 +9,8 @@ export interface GanttCanvas {
   headerSvgEl: SVGSVGElement
   cfg: TimelineCfg
   weekLabel: GanttWeekLabel
+  /** Draw a recurring task at every future date it repeats, not just its own start/due. */
+  showRecurrenceOccurrences: boolean
 }
 
 export function renderGridLines(ctx: GanttCanvas, totalRows: number): void {
